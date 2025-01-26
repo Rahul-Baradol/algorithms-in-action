@@ -1,8 +1,6 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 abstract class Type {}
 
@@ -65,6 +63,57 @@ public class Serializer {
         return builder;
     }
 
+    BodyType deserialize(String serialized) {
+        String filtered = serialized.substring(1, serialized.length() - 1);
+
+        List<String> pairs = getStrings(filtered, ';');
+
+        BodyType bodyType = new BodyType();
+
+        for (String pair: pairs) {
+            List<String> splitPair = getStrings(pair, ':');
+
+            if (splitPair.isEmpty()) break;
+            if (splitPair.get(0).startsWith("{")) {
+                bodyType.add(splitPair.get(0), deserialize(splitPair.get(1)));
+            } else {
+                bodyType.add(splitPair.get(0), splitPair.get(1));
+            }
+        }
+        return bodyType;
+    }
+
+    private static List<String> getStrings(String filtered, char delimiter) {
+        List<String> pairs = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int openBrackets = 0;
+
+        for (char c: filtered.toCharArray()) {
+            if (c == delimiter && openBrackets == 0) {
+                pairs.add(current.toString());
+                current.setLength(0);
+                continue;
+            }
+
+            if (c == '{') {
+                openBrackets++;
+                current.append(c);
+                continue;
+            }
+
+            if (c == '}') {
+                openBrackets--;
+            }
+
+            current.append(c);
+        }
+
+        if (!current.isEmpty()) {
+            pairs.add(current.toString());
+        }
+        return pairs;
+    }
+
     public static void main(String[] args) throws IOException {
         /*
         *   Body body = new Body();
@@ -84,6 +133,11 @@ public class Serializer {
         String result = serializer.serialize(bodyType).toString();
 
         System.out.println(result);
+
+        BodyType deserializedBodyType = serializer.deserialize(result);
+
+        String result2 = serializer.serialize(deserializedBodyType).toString();
+        System.out.println(result2);
 
         FileOutputStream stream = new FileOutputStream("/Users/rahulbaradol/Documents/projects/algorithms-in-action/JSON Serializer/serialized.bin");
         stream.write(result.getBytes());
