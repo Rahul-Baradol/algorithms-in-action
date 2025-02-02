@@ -126,21 +126,21 @@ int main() {
     vector<string> sentences;
     populate(sentences);    
 
-    set<string> vocabolary;
+    set<string> vocabulary;
 
     for (string sentence: sentences) {
         vector<string> tmp = split(sentence);
         for (string word: tmp) {
-            vocabolary.insert(word);
+            vocabulary.insert(word);
         }
     }
 
-    int vocabolary_size = vocabolary.size();
+    int vocabolary_size = vocabulary.size();
 
     map<string, int> word_to_index;
 
     int index = 0;
-    for (string ele: vocabolary) {
+    for (string ele: vocabulary) {
         word_to_index[ele] = index++;
     }
 
